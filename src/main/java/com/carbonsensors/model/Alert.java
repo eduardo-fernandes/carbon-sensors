@@ -2,6 +2,7 @@ package com.carbonsensors.model;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,7 +20,7 @@ public class Alert {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+  private UUID id;
 
   @Column(nullable = false)
   private LocalDateTime created;

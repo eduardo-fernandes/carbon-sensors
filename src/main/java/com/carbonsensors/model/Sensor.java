@@ -1,6 +1,7 @@
 package com.carbonsensors.model;
 
 import java.util.Set;
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,7 +26,7 @@ public class Sensor {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+  private UUID id;
 
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
