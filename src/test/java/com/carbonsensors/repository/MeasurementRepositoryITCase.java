@@ -18,10 +18,10 @@ import java.util.Set;
 @DataJpaTest
 class MeasurementRepositoryITCase {
 
-  private static final String MEASUREMENT_TODAY = "measurementToday";
-  private static final String MEASUREMENT_YESTERDAY = "measurementYesterday";
-  private static final String MEASUREMENT_DAY_BEFORE_YESTERDAY = "measurementDayBeforeYesterday";
-  private static final String MEASUREMENT_THREE_DAYS_AGO = "measurementThreeDaysAgo";
+  private static final double MEASUREMENT_TODAY = 100d;
+  private static final double MEASUREMENT_YESTERDAY = 150d;
+  private static final double MEASUREMENT_DAY_BEFORE_YESTERDAY = 175d;
+  private static final double MEASUREMENT_3_DAYS_AGO = 165d;
   
   @Autowired
   private MeasurementRepository measurementRepository;
@@ -41,11 +41,11 @@ class MeasurementRepositoryITCase {
         measurementRepository.computeMetricsById(sensor.getId(), yesterday);
 
     assertNotNull(sensorMetrics);
-    assertEquals(150, sensorMetrics.getMaxLastNDays());
+    assertEquals(MEASUREMENT_YESTERDAY, sensorMetrics.getMaxLastNDays());
     assertEquals(125, sensorMetrics.getAverageLastNDays());
 
     sensorMetrics = measurementRepository.computeMetricsById(sensor.getId(), dayBeforeYesterday);
-    assertEquals(175, sensorMetrics.getMaxLastNDays());
+    assertEquals(MEASUREMENT_DAY_BEFORE_YESTERDAY, sensorMetrics.getMaxLastNDays());
     assertEquals(141.67d, Math.round(sensorMetrics.getAverageLastNDays() * 100d) / 100d);
   }
 
@@ -58,21 +58,20 @@ class MeasurementRepositoryITCase {
 
     Sensor sensor = create3Measurements(today, yesterday, dayBeforeYesterday);
 
-    Measurement measurementDayBeforeYesterday = Measurement.builder()
+    Measurement measurementThreeDaysAgo = Measurement.builder()
         .created(threeDaysAgo)
-        .co2Quantity(165d)
-        .name(MEASUREMENT_THREE_DAYS_AGO)
+        .co2Quantity(MEASUREMENT_3_DAYS_AGO)
         .sensor(sensor)
         .build();
-    measurementRepository.save(measurementDayBeforeYesterday);
+    measurementRepository.save(measurementThreeDaysAgo);
 
     Set<Measurement> measurements = measurementRepository.findTop3BySensorIdOrderByCreatedDesc(sensor.getId());
     assertNotNull(measurements);
     assertEquals(3, measurements.size());
-    assertTrue(measurements.stream().anyMatch(m -> m.getName().equals(MEASUREMENT_TODAY)));
-    assertTrue(measurements.stream().anyMatch(m -> m.getName().equals(MEASUREMENT_YESTERDAY)));
-    assertTrue(measurements.stream().anyMatch(m -> m.getName().equals(MEASUREMENT_DAY_BEFORE_YESTERDAY)));
-    assertTrue(measurements.stream().noneMatch(m -> m.getName().equals(MEASUREMENT_THREE_DAYS_AGO)));
+    assertTrue(measurements.stream().anyMatch(m -> m.getCo2Quantity() == MEASUREMENT_TODAY));
+    assertTrue(measurements.stream().anyMatch(m -> m.getCo2Quantity() == MEASUREMENT_YESTERDAY));
+    assertTrue(measurements.stream().anyMatch(m -> m.getCo2Quantity() == MEASUREMENT_DAY_BEFORE_YESTERDAY));
+    assertTrue(measurements.stream().noneMatch(m -> m.getCo2Quantity() == MEASUREMENT_3_DAYS_AGO));
   }
 
   private Sensor create3Measurements(LocalDateTime dateFirstMeasurement, LocalDateTime dateSecondMesurement,
@@ -85,24 +84,21 @@ class MeasurementRepositoryITCase {
 
     Measurement measurementToday = Measurement.builder()
         .created(dateFirstMeasurement)
-        .co2Quantity(100d)
-        .name(MEASUREMENT_TODAY)
+        .co2Quantity(MEASUREMENT_TODAY)
         .sensor(sensor)
         .build();
     measurementRepository.save(measurementToday);
 
     Measurement measurementYesterday = Measurement.builder()
         .created(dateSecondMesurement)
-        .co2Quantity(150d)
-        .name(MEASUREMENT_YESTERDAY)
+        .co2Quantity(MEASUREMENT_YESTERDAY)
         .sensor(sensor)
         .build();
     measurementRepository.save(measurementYesterday);
 
     Measurement measurementDayBeforeYesterday = Measurement.builder()
         .created(dateThirdMeasurement)
-        .co2Quantity(175d)
-        .name(MEASUREMENT_DAY_BEFORE_YESTERDAY)
+        .co2Quantity(MEASUREMENT_DAY_BEFORE_YESTERDAY)
         .sensor(sensor)
         .build();
     measurementRepository.save(measurementDayBeforeYesterday);
