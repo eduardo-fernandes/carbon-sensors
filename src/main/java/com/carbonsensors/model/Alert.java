@@ -1,7 +1,7 @@
 package com.carbonsensors.model;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,9 +12,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Alert {
 
@@ -32,5 +38,5 @@ public class Alert {
       cascade = CascadeType.ALL,
       fetch = FetchType.LAZY
   )
-  private Set<Measurement> measurements;
+  private List<Measurement> measurements;
 }

@@ -11,9 +11,10 @@ import com.carbonsensors.model.projection.SensorMetrics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @DataJpaTest
 class MeasurementRepositoryITCase {
@@ -22,7 +23,7 @@ class MeasurementRepositoryITCase {
   private static final double MEASUREMENT_YESTERDAY = 150d;
   private static final double MEASUREMENT_DAY_BEFORE_YESTERDAY = 175d;
   private static final double MEASUREMENT_3_DAYS_AGO = 165d;
-  
+
   @Autowired
   private MeasurementRepository measurementRepository;
 
@@ -50,7 +51,7 @@ class MeasurementRepositoryITCase {
   }
 
   @Test
-  void findTop3BySensorIdOrderByCreatedDesc_whenExists3MeasurementPerSensor_thenReturnSet() {
+  void findBySensorIdOrderByCreatedDesc_whenMeasurementsToBeFoundAre3_thenReturnSet() {
     LocalDateTime today = LocalDateTime.now();
     LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
     LocalDateTime dayBeforeYesterday = LocalDateTime.now().minusDays(2);
@@ -65,7 +66,7 @@ class MeasurementRepositoryITCase {
         .build();
     measurementRepository.save(measurementThreeDaysAgo);
 
-    Set<Measurement> measurements = measurementRepository.findTop3BySensorIdOrderByCreatedDesc(sensor.getId());
+    List<Measurement> measurements = measurementRepository.findBySensorIdOrderByCreatedDesc(sensor.getId(), PageRequest.of(0, 3));
     assertNotNull(measurements);
     assertEquals(3, measurements.size());
     assertTrue(measurements.stream().anyMatch(m -> m.getCo2Quantity() == MEASUREMENT_TODAY));
@@ -102,7 +103,7 @@ class MeasurementRepositoryITCase {
         .sensor(sensor)
         .build();
     measurementRepository.save(measurementDayBeforeYesterday);
-    
+
     return sensor;
   }
 }

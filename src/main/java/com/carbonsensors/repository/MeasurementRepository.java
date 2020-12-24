@@ -2,11 +2,12 @@ package com.carbonsensors.repository;
 
 import com.carbonsensors.model.Measurement;
 import com.carbonsensors.model.projection.SensorMetrics;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public interface MeasurementRepository extends JpaRepository<Measurement, Long> {
@@ -16,5 +17,5 @@ public interface MeasurementRepository extends JpaRepository<Measurement, Long> 
       + "where s.id = :sensorId and m.created >= :measurementDate ")
   public SensorMetrics computeMetricsById(UUID sensorId, LocalDateTime measurementDate);
 
-  Set<Measurement> findTop3BySensorIdOrderByCreatedDesc(UUID sensorId);
+  List<Measurement> findBySensorIdOrderByCreatedDesc(UUID sensorId, Pageable pageable);
 }
