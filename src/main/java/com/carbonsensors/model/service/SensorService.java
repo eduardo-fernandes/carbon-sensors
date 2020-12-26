@@ -1,5 +1,7 @@
 package com.carbonsensors.model.service;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.carbonsensors.model.Sensor;
 import com.carbonsensors.model.Status;
 import com.carbonsensors.repository.SensorRepository;
@@ -23,5 +25,12 @@ public class SensorService {
         .build();
 
     return sensorRepository.save(sensor);
+  }
+
+  public Sensor findSensorById(UUID sensorId) {
+    checkArgument(sensorId != null, "Sensor Id cannot be null");
+
+    return sensorRepository.findById(sensorId)
+        .orElseThrow(() -> new IllegalArgumentException("Sensor entity could be be found given the id: " + sensorId));
   }
 }

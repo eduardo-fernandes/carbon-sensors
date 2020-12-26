@@ -6,16 +6,17 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @ApiModel(description = "Created sensor values")
 public class SensorCreatedDto {
 
   @ApiModelProperty(notes = "Unique id", example = "abc-eslsd-32-sdfsdf")
-  private final UUID id;
+  private UUID id = null;
 
   public static SensorCreatedDto fromSensor(Sensor sensor) {
     SensorCreatedDto dto = null;
