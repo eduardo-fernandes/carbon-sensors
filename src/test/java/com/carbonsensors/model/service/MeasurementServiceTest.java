@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -119,6 +120,30 @@ class MeasurementServiceTest {
         createdAlert.getMeasurements().stream().allMatch(m -> m.equals(createMeasurementAboveThreshold(sensor))));
 
     verify(sensorRepository).save(any());
+    verify(measurementRepository).findBySensorIdOrderByCreatedDesc(SENSOR_ID,
+        PageRequest.of(0, configurationProperties.getConsecutiveMeasurementsForAlert()));
+  }
+
+  @Test
+  void updateSensorStatus_whenLast3AlertsAreAboveThresholdAndSensorHasStatusAlert_thenDoNotChangeSensorStatus() {
+    Sensor sensor = createSensor();
+    sensor.setStatus(Status.ALERT);
+    List<Measurement> measurements = Arrays.asList(
+        createMeasurementAboveThreshold(sensor),
+        createMeasurementAboveThreshold(sensor),
+        createMeasurementAboveThreshold(sensor)
+    );
+
+    when(sensorRepository.save(any())).thenReturn(sensor);
+    when(measurementRepository.findBySensorIdOrderByCreatedDesc(SENSOR_ID,
+        PageRequest.of(0, configurationProperties.getConsecutiveMeasurementsForAlert()))).thenReturn(measurements);
+
+    measurementService.updateSensorStatus(sensor, NOW);
+
+    assertEquals(Status.ALERT, sensor.getStatus());
+    assertEquals(0, sensor.getAlerts().size());
+
+    verify(sensorRepository, never()).save(any());
     verify(measurementRepository).findBySensorIdOrderByCreatedDesc(SENSOR_ID,
         PageRequest.of(0, configurationProperties.getConsecutiveMeasurementsForAlert()));
   }

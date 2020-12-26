@@ -91,15 +91,17 @@ public class MeasurementService {
 
   private void setSensorToAStatusAlert(LocalDateTime createdAt, Sensor sensor,
                                        List<Measurement> lastThreeMeasurements) {
-    sensor.setStatus(Status.ALERT);
-    Alert alert = Alert.builder()
-        .created(createdAt)
-        .sensor(sensor)
-        .measurements(lastThreeMeasurements)
-        .build();
+    if (sensor.getStatus() == null || sensor.getStatus() != Status.ALERT) {
+      sensor.setStatus(Status.ALERT);
+      Alert alert = Alert.builder()
+          .created(createdAt)
+          .sensor(sensor)
+          .measurements(lastThreeMeasurements)
+          .build();
 
-    sensor.getAlerts().add(alert);
-    sensorRepository.save(sensor);
+      sensor.getAlerts().add(alert);
+      sensorRepository.save(sensor);
+    }
   }
 
   private void setSensorToStatusOk(Sensor sensor) {
