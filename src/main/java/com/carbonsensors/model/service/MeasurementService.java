@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,10 +35,7 @@ public class MeasurementService {
   @Transactional
   public Measurement createMeasurement(UUID sensorId, Double co2Quantity, LocalDateTime createdAt) {
 
-    checkArgument(sensorId != null, "Sensor Id cannot be null");
-    checkArgument(co2Quantity != null && co2Quantity >= 0,
-        "co2Quantity must be greater or equal than zero and not null.");
-    checkArgument(createdAt != null, "Creation date cannot be null");
+    validateCreateMeasurementParameters(sensorId, co2Quantity, createdAt);
 
     Sensor sensor =
         sensorRepository.findById(sensorId).orElseThrow(() -> new IllegalArgumentException(
@@ -53,24 +49,67 @@ public class MeasurementService {
 
     measurement = measurementRepository.save(measurement);
 
-    Integer consecutiveMeasurementsForAlert = configurationProperties.getConsecutiveMeasurementsForAlert();
-    Integer co2Threshold = configurationProperties.getCo2LevelThreshold();
-
-    switch (sensor.getStatus()) {
-      case OK:
-        handleSensorStatusOk(sensorId, sensor, co2Threshold);
-        break;
-      case WARM:
-        handleSensorStateWarning(sensorId, createdAt, sensor, consecutiveMeasurementsForAlert, co2Threshold);
-        break;
-      case ALERT:
-        handleSensorStateAlert(sensorId, sensor, consecutiveMeasurementsForAlert, co2Threshold);
-        break;
-      default:
-        throw new IllegalStateException("Unexpected value: " + sensor.getStatus());
-    }
+    updateSensorStatus(sensor, createdAt);
 
     return measurement;
+  }
+
+  void updateSensorStatus(Sensor sensor, LocalDateTime createdAt) {
+    Integer consecutiveMeasurementsForAlert = configurationProperties.getConsecutiveMeasurementsForAlert();
+    Integer consecutiveMeasurementsForOk = configurationProperties.getConsecutiveMeasurementsForOk();
+    Integer co2Threshold = configurationProperties.getCo2LevelThreshold();
+
+    List<Measurement> lastThreeMeasurements =
+        measurementRepository
+            .findBySensorIdOrderByCreatedDesc(sensor.getId(), PageRequest.of(0, consecutiveMeasurementsForAlert));
+
+    if (lastThreeMeasurements.size() == consecutiveMeasurementsForAlert && lastThreeMeasurements.stream()
+        .allMatch(m -> m.getCo2Quantity() > co2Threshold)) {
+      setSensorToAStatusAlert(createdAt, sensor, lastThreeMeasurements);
+    } else if (lastThreeMeasurements.size() == consecutiveMeasurementsForOk && lastThreeMeasurements.stream()
+        .allMatch(m -> m.getCo2Quantity() <= co2Threshold)) {
+      setSensorToStatusOk(sensor);
+    } else {
+      lastThreeMeasurements.stream().findFirst().ifPresent(
+          mostRecentMeasurement -> {
+            if (mostRecentMeasurement.getCo2Quantity() <= co2Threshold) {
+              setSensorToStatusOk(sensor);
+            } else {
+              setSensorToStatusWaring(sensor);
+            }
+          }
+      );
+    }
+  }
+
+  private void validateCreateMeasurementParameters(UUID sensorId, Double co2Quantity, LocalDateTime createdAt) {
+    checkArgument(sensorId != null, "Sensor Id cannot be null");
+    checkArgument(co2Quantity != null && co2Quantity >= 0,
+        "co2Quantity must be greater or equal than zero and not null.");
+    checkArgument(createdAt != null, "Creation date cannot be null");
+  }
+
+  private void setSensorToAStatusAlert(LocalDateTime createdAt, Sensor sensor,
+                                       List<Measurement> lastThreeMeasurements) {
+    sensor.setStatus(Status.ALERT);
+    Alert alert = Alert.builder()
+        .created(createdAt)
+        .sensor(sensor)
+        .measurements(lastThreeMeasurements)
+        .build();
+
+    sensor.getAlerts().add(alert);
+    sensorRepository.save(sensor);
+  }
+
+  private void setSensorToStatusOk(Sensor sensor) {
+    sensor.setStatus(Status.OK);
+    sensorRepository.save(sensor);
+  }
+
+  private void setSensorToStatusWaring(Sensor sensor) {
+    sensor.setStatus(Status.WARM);
+    sensorRepository.save(sensor);
   }
 
   private void handleSensorStateAlert(UUID sensorId, Sensor sensor, Integer consecutiveMeasurementsForAlert,
@@ -95,14 +134,14 @@ public class MeasurementService {
         .allMatch(m -> m.getCo2Quantity() > co2Threshold)) {
       setSensorToAStatusAlert(createdAt, sensor, lastThreeMeasurements);
     } else {
-       lastThreeMeasurements.stream().findFirst().ifPresentOrElse(
-           measurement -> {
-             if (measurement.getCo2Quantity() <= co2Threshold) {
-               setSensorToStatusOk(sensor);
-             }
-           },
-           () -> setSensorToStatusOk(sensor)
-       );
+      lastThreeMeasurements.stream().findFirst().ifPresentOrElse(
+          measurement -> {
+            if (measurement.getCo2Quantity() <= co2Threshold) {
+              setSensorToStatusOk(sensor);
+            }
+          },
+          () -> setSensorToStatusOk(sensor)
+      );
     }
   }
 
@@ -119,23 +158,4 @@ public class MeasurementService {
         }
     );
   }
-
-  private void setSensorToAStatusAlert(LocalDateTime createdAt, Sensor sensor,
-                                       List<Measurement> lastThreeMeasurements) {
-    sensor.setStatus(Status.ALERT);
-    Alert alert = Alert.builder()
-        .created(createdAt)
-        .sensor(sensor)
-        .measurements(lastThreeMeasurements)
-        .build();
-
-    sensor.getAlerts().add(alert);
-    sensorRepository.save(sensor);
-  }
-
-  private void setSensorToStatusOk(Sensor sensor) {
-    sensor.setStatus(Status.OK);
-    sensorRepository.save(sensor);
-  }
-
 }
