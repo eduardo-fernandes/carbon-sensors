@@ -16,6 +16,7 @@ import com.carbonsensors.model.Alert;
 import com.carbonsensors.model.Measurement;
 import com.carbonsensors.model.Sensor;
 import com.carbonsensors.model.Status;
+import com.carbonsensors.repository.AlertRepository;
 import com.carbonsensors.repository.MeasurementRepository;
 import com.carbonsensors.repository.SensorRepository;
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +26,7 @@ import org.mockito.Mock;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,8 @@ class MeasurementServiceTest {
   private MeasurementRepository measurementRepository;
   @Mock
   private SensorRepository sensorRepository;
+  @Mock
+  private AlertRepository alertRepository;
 
   private ConfigurationProperties configurationProperties;
 
@@ -55,7 +59,8 @@ class MeasurementServiceTest {
     configurationProperties.setConsecutiveMeasurementsForAlert(3);
     configurationProperties.setConsecutiveMeasurementsForOk(3);
 
-    measurementService = new MeasurementService(measurementRepository, sensorRepository, configurationProperties);
+    measurementService =
+        new MeasurementService(measurementRepository, sensorRepository, alertRepository, configurationProperties);
   }
 
   @Test
@@ -125,7 +130,7 @@ class MeasurementServiceTest {
   }
 
   @Test
-  void updateSensorStatus_whenLast3AlertsAreAboveThresholdAndSensorHasStatusAlert_thenDoNotChangeSensorStatus() {
+  void updateSensorStatus_whenLast3AlertsAreAboveThresholdAndSensorHasStatusAlert_thenAddMeasurementToAlert() {
     Sensor sensor = createSensor();
     sensor.setStatus(Status.ALERT);
     List<Measurement> measurements = Arrays.asList(
@@ -134,18 +139,28 @@ class MeasurementServiceTest {
         createMeasurementAboveThreshold(sensor)
     );
 
+    Alert alert = Alert.builder()
+        .sensor(sensor)
+        .measurements(new ArrayList<>())
+        .build();
+
     when(sensorRepository.save(any())).thenReturn(sensor);
     when(measurementRepository.findBySensorIdOrderByCreatedDesc(SENSOR_ID,
         PageRequest.of(0, configurationProperties.getConsecutiveMeasurementsForAlert()))).thenReturn(measurements);
+    when(alertRepository.findTop1BySensorIdOrderByCreatedDesc(sensor.getId())).thenReturn(Optional.of(alert));
+    when(alertRepository.save(alert)).thenReturn(alert);
 
     measurementService.updateSensorStatus(sensor, NOW);
 
     assertEquals(Status.ALERT, sensor.getStatus());
     assertEquals(0, sensor.getAlerts().size());
+    assertEquals(1, alert.getMeasurements().size());
 
     verify(sensorRepository, never()).save(any());
     verify(measurementRepository).findBySensorIdOrderByCreatedDesc(SENSOR_ID,
         PageRequest.of(0, configurationProperties.getConsecutiveMeasurementsForAlert()));
+    verify(alertRepository).findTop1BySensorIdOrderByCreatedDesc(sensor.getId());
+    verify(alertRepository).save(alert);
   }
 
   @Test

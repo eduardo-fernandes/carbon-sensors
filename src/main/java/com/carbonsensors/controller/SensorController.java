@@ -1,9 +1,11 @@
 package com.carbonsensors.controller;
 
+import com.carbonsensors.dto.AlertDto;
 import com.carbonsensors.dto.CreateMeasurementDto;
 import com.carbonsensors.dto.SensorCreatedDto;
 import com.carbonsensors.dto.SensorMetricsDto;
 import com.carbonsensors.dto.SensorStatusDto;
+import com.carbonsensors.model.service.AlertService;
 import com.carbonsensors.model.service.MeasurementService;
 import com.carbonsensors.model.service.SensorService;
 import io.swagger.annotations.Api;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @Api(value = "sensorController", description = "Provide services for sensor management")
@@ -27,11 +30,14 @@ public class SensorController {
 
   private final SensorService sensorService;
   private final MeasurementService measurementService;
+  private final AlertService alertService;
 
   public SensorController(SensorService sensorService,
-                          MeasurementService measurementService) {
+                          MeasurementService measurementService,
+                          AlertService alertService) {
     this.sensorService = sensorService;
     this.measurementService = measurementService;
+    this.alertService = alertService;
   }
 
   @ApiOperation(value = "Create a Sensor", response = SensorCreatedDto.class)
@@ -79,5 +85,17 @@ public class SensorController {
   public @ResponseBody
   SensorMetricsDto computeMetrics(@PathVariable(value = "uuid") UUID sensorId) {
     return SensorMetricsDto.fromSensorMetrics(sensorService.findMetricsBySensorId(sensorId));
+  }
+
+  @ApiOperation(value = "Get a list of alerts associated with a Sensor")
+  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Successful retrieval of Alerts associated with a sensor"),
+      @ApiResponse(code = 400, message = "Sensor Id is not valid or null")
+  }
+  )
+  @GetMapping(path = "/{uuid}/alerts")
+  public @ResponseBody
+  List<AlertDto> findAlerts(@PathVariable(value = "uuid") UUID sensorId) {
+    return AlertDto.fromAlerts(alertService.findAlertsBySensorId(sensorId));
   }
 }

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(value
-      = { IllegalArgumentException.class })
+      = { IllegalArgumentException.class, IllegalStateException.class })
   protected ResponseEntity<Object> handleConflict(
       RuntimeException ex, WebRequest request) {
     String bodyOfResponse = ex.getMessage();

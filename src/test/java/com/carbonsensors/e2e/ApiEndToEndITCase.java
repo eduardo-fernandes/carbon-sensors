@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
+import com.carbonsensors.dto.AlertDto;
 import com.carbonsensors.dto.CreateMeasurementDto;
 import com.carbonsensors.dto.SensorCreatedDto;
 import com.carbonsensors.dto.SensorMetricsDto;
@@ -26,6 +27,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest
@@ -50,6 +52,22 @@ class ApiEndToEndITCase {
         .build();
   }
 
+  /**
+   * This test goes through the whole API exercising all use cases. Below are the taken steps:
+   *
+   * 1. Create a sensor
+   * 2. Check its status - should be OK
+   * 2. Add a measurement below the CO2 limit, and check its status - should be OK
+   * 3. Add 3 consecutive above the CO2 limit measurements. Check the statuses along the way. They should be WARN, until the last one which should be ALERT.
+   * 4. Add 3 consecutive below the CO2 limit measurements. Check the statuses along the way. They should be Alert, until the last one which should be OK.
+   * 4. Add 1 measurement above the CO2 limit - check the status which should be WARN.
+   * 5. Add 1 measurement below the CO2 limit - check the status which should be OK.
+   * 6. Add 3 consecutive above, and 3 consecutive below the CO2 limit measurements. All statuses should be checked accordingly.
+   * 7. Fetch and check the metrics.
+   * 8. Fetch and check the alerts.
+   *
+   * @throws Exception Exception thrown when an unexpected error has occurred
+   */
   @Test
   void goThroughSensorCreationAndMeasurementFlow() throws Exception {
     int numberOfDays = 30;
@@ -59,28 +77,57 @@ class ApiEndToEndITCase {
     createMeasurementWithLimitLevelOfCo2(sensorId, NOW.minusDays(numberOfDays));
     checkSensorStatus(sensorId, Status.OK);
 
-    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.WARM);
-    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.WARM);
-    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.ALERT);
-
-    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.ALERT);
-    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.ALERT);
-    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
-    checkSensorStatus(sensorId, Status.OK);
+    numberOfDays = add3ConsecutiveAboveLimitCo2Measurements(numberOfDays, sensorId);
+    numberOfDays = add3ConsecutiveBelowTheLimitCo2Measurements(numberOfDays, sensorId);
 
     createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
     checkSensorStatus(sensorId, Status.WARM);
     createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
     checkSensorStatus(sensorId, Status.OK);
+
+    numberOfDays = add3ConsecutiveAboveLimitCo2Measurements(numberOfDays, sensorId);
+    add3ConsecutiveBelowTheLimitCo2Measurements(numberOfDays, sensorId);
 
     SensorMetricsDto metricsDto = calculateSensorMetrics(sensorId);
     assertEquals(CO2_QUANTITY_LIMIT + 1, metricsDto.getMaxLast30Days());
     assertEquals(CO2_QUANTITY_LIMIT, metricsDto.getAvgLast30Days());
+
+    List<AlertDto> alertDtos = getSensorAlerts(sensorId);
+    assertNotNull(alertDtos);
+    assertEquals(2, alertDtos.size());
+  }
+
+  private int add3ConsecutiveBelowTheLimitCo2Measurements(int numberOfDays, UUID sensorId) throws Exception {
+    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.ALERT);
+    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.ALERT);
+    createMeasurementBelowTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.OK);
+    return numberOfDays;
+  }
+
+  private int add3ConsecutiveAboveLimitCo2Measurements(int numberOfDays, UUID sensorId) throws Exception {
+    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.WARM);
+    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.WARM);
+    createMeasurementAboveTheLimitLevelOfCo2(sensorId, NOW.minusDays(--numberOfDays));
+    checkSensorStatus(sensorId, Status.ALERT);
+    return numberOfDays;
+  }
+
+  private List<AlertDto> getSensorAlerts(UUID sensorId) throws Exception {
+    MvcResult mvcResult = mockMvc.perform(get(format("/api/v1/sensors/{0}/alerts", sensorId))
+        .contentType(MediaType.APPLICATION_JSON)
+        .characterEncoding(ENCODING_UTF8))
+        .andDo(print())
+        .andReturn();
+
+    assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus());
+
+    String responseAsString = mvcResult.getResponse().getContentAsString();
+    return objectMapper.readValue(responseAsString, List.class);
   }
 
   private SensorMetricsDto calculateSensorMetrics(UUID sensorId) throws Exception {

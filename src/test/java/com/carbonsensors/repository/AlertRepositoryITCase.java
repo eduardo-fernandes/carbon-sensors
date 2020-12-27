@@ -1,7 +1,9 @@
 package com.carbonsensors.repository;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.carbonsensors.model.Alert;
@@ -13,8 +15,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @DataJpaTest
 class AlertRepositoryITCase {
@@ -27,30 +29,52 @@ class AlertRepositoryITCase {
 
   @Test
   void findBySensorId_whenExistsAlert_thenReturnAlert() {
-    LocalDateTime created = LocalDateTime.now();
+    LocalDateTime today = LocalDateTime.now();
+    LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+
+    Sensor sensor = createSensorAnd2Alerts(today, tomorrow);
+
+    List<Alert> result = alertRepository.findBySensorIdOrderByCreatedDesc(sensor.getId());
+
+    assertTrue(isNotEmpty(result));
+    assertEquals(2, result.size());
+    assertEquals(tomorrow, result.get(0).getCreated());
+    assertEquals(today, result.get(1).getCreated());
+  }
+
+  @Test
+  void findTop1BySensorIdOrderByCreatedDesc_whenSensorHaveSeveralAlerts_thenReturnMostRecentOne() {
+    LocalDateTime today = LocalDateTime.now();
+    LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+
+    Sensor sensor = createSensorAnd2Alerts(today, tomorrow);
+
+    Optional<Alert> result = alertRepository.findTop1BySensorIdOrderByCreatedDesc(sensor.getId());
+
+    assertNotNull(result);
+    assertTrue(result.isPresent());
+    assertEquals(tomorrow, result.get().getCreated());
+  }
+
+  private Sensor createSensorAnd2Alerts(LocalDateTime today, LocalDateTime tomorrow) {
     Sensor sensor = Sensor.builder()
         .status(Status.OK)
         .build();
 
     sensor = sensorRepository.save(sensor);
 
-    Alert alert = Alert.builder()
+    Alert alert1 = Alert.builder()
         .sensor(sensor)
-        .created(created)
+        .created(today)
         .build();
 
-    sensor.setAlerts(new HashSet<>(asList(alert)));
+    Alert alert2 = Alert.builder()
+        .sensor(sensor)
+        .created(tomorrow)
+        .build();
 
-    sensorRepository.save(sensor);
+    sensor.setAlerts(new HashSet<>(asList(alert1, alert2)));
 
-    Optional<Alert> result = alertRepository.findBySensorId(sensor.getId());
-
-    assertTrue(result.isPresent());
-    assertEquals(created, result.get().getCreated());
-  }
-
-  @Test
-  void findBySensorId_whenAlertDoesNotExists_thenReturnOptionalEmpty() {
-    assertTrue(alertRepository.findBySensorId(UUID.randomUUID()).isEmpty());
+    return sensorRepository.save(sensor);
   }
 }

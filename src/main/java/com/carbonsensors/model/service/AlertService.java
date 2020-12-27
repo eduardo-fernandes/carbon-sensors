@@ -4,6 +4,7 @@ import com.carbonsensors.model.Alert;
 import com.carbonsensors.repository.AlertRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -15,8 +16,7 @@ public class AlertService {
     this.alertRepository = alertRepository;
   }
 
-  public Alert findAlertBySensorId(UUID sensorId) {
-    return alertRepository.findBySensorId(sensorId).orElseThrow(
-        () -> new IllegalArgumentException("There is no Alert related the the entered sensor id: " + sensorId));
+  public List<Alert> findAlertsBySensorId(UUID sensorId) {
+    return alertRepository.findBySensorIdOrderByCreatedDesc(sensorId);
   }
 }

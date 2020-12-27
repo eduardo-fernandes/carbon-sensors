@@ -7,6 +7,7 @@ import com.carbonsensors.model.Alert;
 import com.carbonsensors.model.Measurement;
 import com.carbonsensors.model.Sensor;
 import com.carbonsensors.model.Status;
+import com.carbonsensors.repository.AlertRepository;
 import com.carbonsensors.repository.MeasurementRepository;
 import com.carbonsensors.repository.SensorRepository;
 import org.springframework.data.domain.PageRequest;
@@ -22,13 +23,16 @@ public class MeasurementService {
 
   private final MeasurementRepository measurementRepository;
   private final SensorRepository sensorRepository;
+  private final AlertRepository alertRepository;
   private final ConfigurationProperties configurationProperties;
 
   public MeasurementService(MeasurementRepository measurementRepository,
                             SensorRepository sensorRepository,
+                            AlertRepository alertRepository,
                             ConfigurationProperties configurationProperties) {
     this.measurementRepository = measurementRepository;
     this.sensorRepository = sensorRepository;
+    this.alertRepository = alertRepository;
     this.configurationProperties = configurationProperties;
   }
 
@@ -91,7 +95,17 @@ public class MeasurementService {
 
   private void setSensorToAStatusAlert(LocalDateTime createdAt, Sensor sensor,
                                        List<Measurement> lastThreeMeasurements) {
-    if (sensor.getStatus() == null || sensor.getStatus() != Status.ALERT) {
+    if (sensor.getStatus() != null && sensor.getStatus() == Status.ALERT) {
+      Alert alert =
+          alertRepository.findTop1BySensorIdOrderByCreatedDesc(sensor.getId()).orElseThrow(() -> new IllegalStateException(
+              "Sensor " + sensor.getId() + " should have an alert associated, since it is in AlERT state."));
+      alert.getMeasurements().add(lastThreeMeasurements.stream().findFirst().orElseThrow(
+          () -> new IllegalStateException(
+              "Sensor " + sensor.getId() + " should have measurements for adding in an existing alert with id " + alert
+                  .getId())));
+
+      alertRepository.save(alert);
+    } else {
       sensor.setStatus(Status.ALERT);
       Alert alert = Alert.builder()
           .created(createdAt)

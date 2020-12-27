@@ -1,6 +1,8 @@
 package com.carbonsensors.model.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -11,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 class AlertServiceTest {
@@ -32,20 +34,13 @@ class AlertServiceTest {
   @Test
   void findAlertBySensorId_whenSensorIdRelatesToAlert_thenReturnAlert() {
     Alert alert = Alert.builder().build();
-    when(alertRepository.findBySensorId(SENSOR_ID)).thenReturn(Optional.of(alert));
+    List<Alert> alerts = singletonList(alert);
+    when(alertRepository.findBySensorIdOrderByCreatedDesc(SENSOR_ID)).thenReturn(alerts);
 
-    Alert result = alertService.findAlertBySensorId(SENSOR_ID);
+    List<Alert> result = alertService.findAlertsBySensorId(SENSOR_ID);
 
     assertNotNull(result);
-    assertEquals(alert, result);
-    verify(alertRepository).findBySensorId(SENSOR_ID);
-  }
-
-  @Test
-  void findAlertBySensorId_whenSensorIdDoesNotRelateToAlert_thenThrowException() {
-    when(alertRepository.findBySensorId(SENSOR_ID)).thenReturn(Optional.empty());
-
-    assertThrows(IllegalArgumentException.class, () -> alertService.findAlertBySensorId(SENSOR_ID));
-    verify(alertRepository).findBySensorId(SENSOR_ID);
+    assertEquals(alerts, result);
+    verify(alertRepository).findBySensorIdOrderByCreatedDesc(SENSOR_ID);
   }
 }
