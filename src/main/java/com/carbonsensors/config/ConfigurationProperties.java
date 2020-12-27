@@ -20,9 +20,6 @@ public class ConfigurationProperties {
   @Value("${consecutive.measurements.for.ok}")
   private Integer consecutiveMeasurementsForOk;
 
-  @Value("${average.level.co2.days}")
-  private Integer averageLevelCo2Days;
-
-  @Value("${max.level.co2.days}")
-  private Integer maxLevelCo2Days;
+  @Value("${metrics.co2.days}")
+  private Integer metricsCo2Days;
 }

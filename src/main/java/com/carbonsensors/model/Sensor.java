@@ -15,7 +15,9 @@ import javax.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Builder
 @Data
@@ -37,5 +39,7 @@ public class Sensor {
       fetch = FetchType.LAZY,
       cascade = CascadeType.ALL
   )
+  @EqualsAndHashCode.Exclude
+  @ToString.Exclude
   private Set<Alert> alerts;
 }

@@ -12,10 +12,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Builder
 @Data
@@ -38,5 +41,8 @@ public class Alert {
       cascade = CascadeType.ALL,
       fetch = FetchType.LAZY
   )
+  @EqualsAndHashCode.Exclude
+  @ToString.Exclude
+  @OrderBy(value = "created desc")
   private List<Measurement> measurements;
 }

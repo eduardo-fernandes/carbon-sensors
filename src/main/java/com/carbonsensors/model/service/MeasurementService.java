@@ -69,7 +69,7 @@ public class MeasurementService {
     } else if (lastThreeMeasurements.size() == consecutiveMeasurementsForOk && lastThreeMeasurements.stream()
         .allMatch(m -> m.getCo2Quantity() <= co2Threshold)) {
       setSensorToStatusOk(sensor);
-    } else {
+    } else if (sensor.getStatus() != Status.ALERT) {
       lastThreeMeasurements.stream().findFirst().ifPresent(
           mostRecentMeasurement -> {
             if (mostRecentMeasurement.getCo2Quantity() <= co2Threshold) {
@@ -85,7 +85,7 @@ public class MeasurementService {
   private void validateCreateMeasurementParameters(UUID sensorId, Double co2Quantity, LocalDateTime createdAt) {
     checkArgument(sensorId != null, "Sensor Id cannot be null");
     checkArgument(co2Quantity != null && co2Quantity >= 0,
-        "co2Quantity must be greater or equal than zero and not null.");
+        "co2Quantity must be greater or equal than zero and not null. Entered value: " + co2Quantity);
     checkArgument(createdAt != null, "Creation date cannot be null");
   }
 
@@ -112,52 +112,5 @@ public class MeasurementService {
   private void setSensorToStatusWaring(Sensor sensor) {
     sensor.setStatus(Status.WARM);
     sensorRepository.save(sensor);
-  }
-
-  private void handleSensorStateAlert(UUID sensorId, Sensor sensor, Integer consecutiveMeasurementsForAlert,
-                                      Integer co2Threshold) {
-    List<Measurement> lastThreeMeasurements =
-        measurementRepository
-            .findBySensorIdOrderByCreatedDesc(sensorId, PageRequest.of(0, consecutiveMeasurementsForAlert));
-
-    if (lastThreeMeasurements.size() == consecutiveMeasurementsForAlert && lastThreeMeasurements.stream()
-        .allMatch(m -> m.getCo2Quantity() <= co2Threshold)) {
-      setSensorToStatusOk(sensor);
-    }
-  }
-
-  private void handleSensorStateWarning(UUID sensorId, LocalDateTime createdAt, Sensor sensor,
-                                        Integer consecutiveMeasurementsForAlert, Integer co2Threshold) {
-    List<Measurement> lastThreeMeasurements =
-        measurementRepository
-            .findBySensorIdOrderByCreatedDesc(sensorId, PageRequest.of(0, consecutiveMeasurementsForAlert));
-
-    if (lastThreeMeasurements.size() == consecutiveMeasurementsForAlert && lastThreeMeasurements.stream()
-        .allMatch(m -> m.getCo2Quantity() > co2Threshold)) {
-      setSensorToAStatusAlert(createdAt, sensor, lastThreeMeasurements);
-    } else {
-      lastThreeMeasurements.stream().findFirst().ifPresentOrElse(
-          measurement -> {
-            if (measurement.getCo2Quantity() <= co2Threshold) {
-              setSensorToStatusOk(sensor);
-            }
-          },
-          () -> setSensorToStatusOk(sensor)
-      );
-    }
-  }
-
-  private void handleSensorStatusOk(UUID sensorId, Sensor sensor, Integer co2Threshold) {
-    List<Measurement> lastMeasurementList =
-        measurementRepository.findBySensorIdOrderByCreatedDesc(sensorId, PageRequest.of(0, 1));
-
-    lastMeasurementList.stream().findFirst().ifPresent(
-        lastMeasurement -> {
-          if (lastMeasurement.getCo2Quantity() > co2Threshold) {
-            sensor.setStatus(Status.WARM);
-            sensorRepository.save(sensor);
-          }
-        }
-    );
   }
 }
