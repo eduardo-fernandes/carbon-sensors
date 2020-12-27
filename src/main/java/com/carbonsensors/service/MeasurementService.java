@@ -1,4 +1,4 @@
-package com.carbonsensors.model.service;
+package com.carbonsensors.service;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

@@ -1,4 +1,4 @@
-package com.carbonsensors.model.service;
+package com.carbonsensors.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 

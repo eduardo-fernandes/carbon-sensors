@@ -1,4 +1,4 @@
-package com.carbonsensors.model.service;
+package com.carbonsensors.service;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;

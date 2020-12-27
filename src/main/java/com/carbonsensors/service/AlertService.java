@@ -1,4 +1,4 @@
-package com.carbonsensors.model.service;
+package com.carbonsensors.service;
 
 import com.carbonsensors.model.Alert;
 import com.carbonsensors.repository.AlertRepository;
