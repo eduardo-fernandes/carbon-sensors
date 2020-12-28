@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -22,10 +22,10 @@ import lombok.Setter;
 public class AlertDto {
 
   @ApiModelProperty(notes = "Time when the alert was set", example = "2019-02-02T18:55:47+00:00")
-  private LocalDateTime startTime;
+  private ZonedDateTime startTime;
 
   @ApiModelProperty(notes = "Time when the alert was removed", example = "2019-02-02T20:00:47+00:00")
-  private LocalDateTime endTime;
+  private ZonedDateTime endTime;
 
   @ApiModelProperty(notes = "List of measurements above CO2 limit", example = "[2100, 2200, 2100]")
   private List<Double> mesurements;

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +29,8 @@ class AlertRepositoryITCase {
 
   @Test
   void findBySensorId_whenExistsAlert_thenReturnAlert() {
-    LocalDateTime today = LocalDateTime.now();
-    LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+    ZonedDateTime today = ZonedDateTime.now();
+    ZonedDateTime tomorrow = ZonedDateTime.now().plusDays(1);
 
     Sensor sensor = createSensorAnd2Alerts(today, tomorrow);
 
@@ -44,8 +44,8 @@ class AlertRepositoryITCase {
 
   @Test
   void findTop1BySensorIdOrderByCreatedDesc_whenSensorHaveSeveralAlerts_thenReturnMostRecentOne() {
-    LocalDateTime today = LocalDateTime.now();
-    LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+    ZonedDateTime today = ZonedDateTime.now();
+    ZonedDateTime tomorrow = ZonedDateTime.now().plusDays(1);
 
     Sensor sensor = createSensorAnd2Alerts(today, tomorrow);
 
@@ -56,7 +56,7 @@ class AlertRepositoryITCase {
     assertEquals(tomorrow, result.get().getCreated());
   }
 
-  private Sensor createSensorAnd2Alerts(LocalDateTime today, LocalDateTime tomorrow) {
+  private Sensor createSensorAnd2Alerts(ZonedDateTime today, ZonedDateTime tomorrow) {
     Sensor sensor = Sensor.builder()
         .status(Status.OK)
         .build();

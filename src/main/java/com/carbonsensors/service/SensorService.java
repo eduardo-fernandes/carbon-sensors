@@ -11,7 +11,7 @@ import com.carbonsensors.repository.SensorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Service
@@ -51,6 +51,6 @@ public class SensorService {
 
     Integer metricsCo2Days = configurationProperties.getMetricsCo2Days();
 
-    return measurementRepository.computeMetricsById(sensorId, LocalDateTime.now().minusDays(metricsCo2Days));
+    return measurementRepository.computeMetricsById(sensorId, ZonedDateTime.now().minusDays(metricsCo2Days));
   }
 }

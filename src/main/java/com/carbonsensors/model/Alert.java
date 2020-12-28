@@ -1,6 +1,6 @@
 package com.carbonsensors.model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -32,7 +32,7 @@ public class Alert {
   private UUID id;
 
   @Column(nullable = false)
-  private LocalDateTime created;
+  private ZonedDateTime created;
 
   @ManyToOne(fetch = FetchType.LAZY)
   private Sensor sensor;

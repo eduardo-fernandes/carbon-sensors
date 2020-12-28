@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,7 +35,7 @@ import java.util.UUID;
 
 class MeasurementServiceTest {
 
-  private static final LocalDateTime NOW = LocalDateTime.now();
+  private static final ZonedDateTime NOW = ZonedDateTime.now();
   private static final UUID SENSOR_ID = UUID.randomUUID();
   private static final Double CO2_QUANTITY_LIMIT = 2000d;
 

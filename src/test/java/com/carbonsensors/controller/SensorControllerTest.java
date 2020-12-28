@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -35,9 +35,9 @@ class SensorControllerTest {
   private static final double FIRST_MEASUREMENT = 2001d;
   private static final double SECOND_MEASUREMENT = 2002d;
   private static final double THIRD_MEASUREMENT = 2003d;
-  private static final LocalDateTime START = LocalDateTime.now();
-  private static final LocalDateTime MIDDLE_DATE = LocalDateTime.now().plusDays(1);
-  private static final LocalDateTime END = LocalDateTime.now().plusDays(2);
+  private static final ZonedDateTime START = ZonedDateTime.now();
+  private static final ZonedDateTime MIDDLE_DATE = ZonedDateTime.now().plusDays(1);
+  private static final ZonedDateTime END = ZonedDateTime.now().plusDays(2);
 
   @Mock
   private SensorService sensorService;
@@ -87,7 +87,7 @@ class SensorControllerTest {
 
   @Test
   void createMeasurement_whenParametersAreValid_thenCreateMeasurement() {
-    CreateMeasurementDto createMeasurementDto = new CreateMeasurementDto(20d, LocalDateTime.now());
+    CreateMeasurementDto createMeasurementDto = new CreateMeasurementDto(20d, ZonedDateTime.now());
     UUID sensorId = UUID.randomUUID();
 
     when(measurementService

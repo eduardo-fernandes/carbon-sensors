@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @DataJpaTest
@@ -32,9 +32,9 @@ class MeasurementRepositoryITCase {
 
   @Test
   void computeMetricsById_whenDataIsOk_thenReturnComputedData() {
-    LocalDateTime today = LocalDateTime.now();
-    LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
-    LocalDateTime dayBeforeYesterday = LocalDateTime.now().minusDays(2);
+    ZonedDateTime today = ZonedDateTime.now();
+    ZonedDateTime yesterday = ZonedDateTime.now().minusDays(1);
+    ZonedDateTime dayBeforeYesterday = ZonedDateTime.now().minusDays(2);
 
     Sensor sensor = create3Measurements(today, yesterday, dayBeforeYesterday);
 
@@ -52,10 +52,10 @@ class MeasurementRepositoryITCase {
 
   @Test
   void findBySensorIdOrderByCreatedDesc_whenMeasurementsToBeFoundAre3_thenReturnSet() {
-    LocalDateTime today = LocalDateTime.now();
-    LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
-    LocalDateTime dayBeforeYesterday = LocalDateTime.now().minusDays(2);
-    LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+    ZonedDateTime today = ZonedDateTime.now();
+    ZonedDateTime yesterday = ZonedDateTime.now().minusDays(1);
+    ZonedDateTime dayBeforeYesterday = ZonedDateTime.now().minusDays(2);
+    ZonedDateTime threeDaysAgo = ZonedDateTime.now().minusDays(3);
 
     Sensor sensor = create3Measurements(today, yesterday, dayBeforeYesterday);
 
@@ -75,8 +75,8 @@ class MeasurementRepositoryITCase {
     assertTrue(measurements.stream().noneMatch(m -> m.getCo2Quantity() == MEASUREMENT_3_DAYS_AGO));
   }
 
-  private Sensor create3Measurements(LocalDateTime dateFirstMeasurement, LocalDateTime dateSecondMesurement,
-                                     LocalDateTime dateThirdMeasurement) {
+  private Sensor create3Measurements(ZonedDateTime dateFirstMeasurement, ZonedDateTime dateSecondMesurement,
+                                     ZonedDateTime dateThirdMeasurement) {
     Sensor sensor = Sensor.builder()
         .status(Status.OK)
         .build();

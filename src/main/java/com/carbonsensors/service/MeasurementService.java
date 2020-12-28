@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +37,7 @@ public class MeasurementService {
   }
 
   @Transactional
-  public Measurement createMeasurement(UUID sensorId, Double co2Quantity, LocalDateTime createdAt) {
+  public Measurement createMeasurement(UUID sensorId, Double co2Quantity, ZonedDateTime createdAt) {
 
     validateCreateMeasurementParameters(sensorId, co2Quantity, createdAt);
 
@@ -58,7 +58,7 @@ public class MeasurementService {
     return measurement;
   }
 
-  void updateSensorStatus(Sensor sensor, LocalDateTime createdAt) {
+  void updateSensorStatus(Sensor sensor, ZonedDateTime createdAt) {
     Integer consecutiveMeasurementsForAlert = configurationProperties.getConsecutiveMeasurementsForAlert();
     Integer consecutiveMeasurementsForOk = configurationProperties.getConsecutiveMeasurementsForOk();
     Integer co2Threshold = configurationProperties.getCo2LevelThreshold();
@@ -86,14 +86,14 @@ public class MeasurementService {
     }
   }
 
-  private void validateCreateMeasurementParameters(UUID sensorId, Double co2Quantity, LocalDateTime createdAt) {
+  private void validateCreateMeasurementParameters(UUID sensorId, Double co2Quantity, ZonedDateTime createdAt) {
     checkArgument(sensorId != null, "Sensor Id cannot be null");
     checkArgument(co2Quantity != null && co2Quantity >= 0,
         "co2Quantity must be greater or equal than zero and not null. Entered value: " + co2Quantity);
     checkArgument(createdAt != null, "Creation date cannot be null");
   }
 
-  private void setSensorToAStatusAlert(LocalDateTime createdAt, Sensor sensor,
+  private void setSensorToAStatusAlert(ZonedDateTime createdAt, Sensor sensor,
                                        List<Measurement> lastThreeMeasurements) {
     if (sensor.getStatus() != null && sensor.getStatus() == Status.ALERT) {
       Alert alert =

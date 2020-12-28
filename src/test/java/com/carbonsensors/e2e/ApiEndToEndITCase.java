@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.text.MessageFormat;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ import java.util.UUID;
 class ApiEndToEndITCase {
 
   private static final Double CO2_QUANTITY_LIMIT = 2000d;
-  private static final LocalDateTime NOW = LocalDateTime.now();
+  private static final ZonedDateTime NOW = ZonedDateTime.now();
 
   private static final String ENCODING_UTF8 = "UTF-8";
 
@@ -175,19 +175,19 @@ class ApiEndToEndITCase {
     return sensorCreatedDto;
   }
 
-  private void createMeasurementWithLimitLevelOfCo2(UUID sensorId, LocalDateTime time) throws Exception {
+  private void createMeasurementWithLimitLevelOfCo2(UUID sensorId, ZonedDateTime time) throws Exception {
     createMeasurement(sensorId, CO2_QUANTITY_LIMIT, time);
   }
 
-  private void createMeasurementAboveTheLimitLevelOfCo2(UUID sensorId, LocalDateTime time) throws Exception {
+  private void createMeasurementAboveTheLimitLevelOfCo2(UUID sensorId, ZonedDateTime time) throws Exception {
     createMeasurement(sensorId, CO2_QUANTITY_LIMIT + 1, time);
   }
 
-  private void createMeasurementBelowTheLimitLevelOfCo2(UUID sensorId, LocalDateTime time) throws Exception {
+  private void createMeasurementBelowTheLimitLevelOfCo2(UUID sensorId, ZonedDateTime time) throws Exception {
     createMeasurement(sensorId, CO2_QUANTITY_LIMIT - 1, time);
   }
 
-  private void createMeasurement(UUID sensorId, Double co2Quantity, LocalDateTime time) throws Exception {
+  private void createMeasurement(UUID sensorId, Double co2Quantity, ZonedDateTime time) throws Exception {
     CreateMeasurementDto createMeasurementDto = new CreateMeasurementDto(co2Quantity, time);
     String parametersRequest = objectMapper.writeValueAsString(createMeasurementDto);
 

@@ -23,7 +23,9 @@ public class SensorMetricsDto {
   public static SensorMetricsDto fromSensorMetrics(SensorMetrics sensorMetrics) {
     SensorMetricsDto dto = null;
     if (sensorMetrics != null) {
-      dto = new SensorMetricsDto(sensorMetrics.getMaxLastNDays(), sensorMetrics.getAverageLastNDays());
+      Double maxLastNDays = sensorMetrics.getMaxLastNDays() != null ? sensorMetrics.getMaxLastNDays() : 0d;
+      Double avgLastNDays = sensorMetrics.getAverageLastNDays() != null ? sensorMetrics.getAverageLastNDays() : 0d;
+      dto = new SensorMetricsDto(maxLastNDays, avgLastNDays);
     }
     return dto;
   }

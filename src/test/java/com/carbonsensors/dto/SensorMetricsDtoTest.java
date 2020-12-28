@@ -25,4 +25,13 @@ class SensorMetricsDtoTest {
     assertEquals(MAX_LAST_30_DAYS, result.getMaxLast30Days());
     assertEquals(AVG_LAST_30_DAYS, result.getAvgLast30Days());
   }
+
+  @Test
+  void fromSensorMetrics_whenSensorMetricsExistsWithNullValue_thenReturnDtoWithZeros() {
+    SensorMetricsDto result = SensorMetricsDto.fromSensorMetrics(new SensorMetrics(null, null));
+
+    assertNotNull(result);
+    assertEquals(0d, result.getMaxLast30Days());
+    assertEquals(0d, result.getAvgLast30Days());
+  }
 }
