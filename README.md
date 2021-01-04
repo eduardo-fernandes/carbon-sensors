@@ -1,12 +1,17 @@
-# carbon-sensors
+# Carbon Sensors
 
-This project has a set of endpoints (service) which registers and create reports for carbon consumption.
+This project has a set of endpoints which registers and create reports for carbon consumption. Below is the problem description.
 
-As a reminder, below is the acceptance criteria provided in the code challenge description:
+## Problem and solution guidelines
+
+Carbon Dioxide (CO2) is all around us and we are constantly expelling it, but in high concentration CO2 can be harmful or even lethal. CO2 Levels between 2000 and 5000 ppm are associated with headaches, sleepiness poor concentration, loss of attention, increased heart rate and slight nausea may also be present. As a reminder, below is the acceptance criteria provided in the code challenge description:
+
+Here is a set of rules that this project abides for collecting data of hundreds of thousands of sensors and alert if the CO2 concentrations reach critical levels.
 
  - The service should be able to receive measurements from each sensor at
 the rate of 1 per minute
  - If the CO2 level exceeds 2000 ppm the sensor status should be set to WARN
+-  If the status is WARN and the next CO2 level is below 2000 ppm, the status should be set back to OK
  - If the service receives 3 or more consecutive measurements higher than
 2000 the sensor status should be set to ALERT
  - When the sensor reaches to status ALERT an alert should be stored
@@ -17,14 +22,7 @@ consecutive measurements lower than 2000; then it moves to OK
  - Maximum CO2 Level in the last 30 days
  - It is possible to list all the alerts for a given sensor
 
-Below are some minor issues found in the description, and provided API, and how they were addressed:
-
-- No rule for the case when the sensor status is set to WARN, and the next reading is below 2000 ppm. Here will be assumed that for this case, the status is set back to OK.
-- The `POST /api/v1/sensors/{uuid}/mesurements` has a typo in measurements. It should be: `POST /api/v1/sensors/{uuid}/measurements`. It will be corrected in this application.
-- The response payload from the method `GET /api/v1/sensors/{uuid}/alerts` will return a list of measurements, instead of `measurement1`, `measurement2` and `measurement3`. By doing like this, we get an array of N measurements, having a more generic and meaningful way of showing such values.
-
-## Requirements
-
+## Requirements for running the application
 In order to handle this project appropriately, please setup the following tools:
 
  - Git
